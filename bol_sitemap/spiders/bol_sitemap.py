@@ -1,15 +1,15 @@
 import time
 import scrapy
-from bs4 import BeautifulSoup
 from scrapy import signals
 from scrapy.settings.default_settings import RETRY_HTTP_CODES
+from scrapy.spiders import SitemapSpider
 
 
-class BolSpider(scrapy.Spider):
+class BolSpider(SitemapSpider):
     name = "sitemap/bol.com"
     allowed_domains = ['bol.com']
     web_url = 'https://www.bol.com'
-    start_urls = ['https://sitemap.bol.com/v0.9/index']
+    sitemap_urls = ['https://sitemap.bol.com/v0.9/index']
     item_count = 0
 
     # headers = {
@@ -53,24 +53,6 @@ class BolSpider(scrapy.Spider):
         spider.crawler = crawler
         return spider
 
-    def parse(self, response):
-        soup = BeautifulSoup(response.text, 'lxml')
-        for sub_map in soup.select('loc'):
-            sub_map_url = sub_map.text
-            check_url = sub_map_url.rsplit('-')[-1]
-            if check_url == 'sitemap':
-                # If the url is ending with sitemap it means it is a sitemap
-                yield scrapy.Request(sub_map_url, callback=self.parse_submap, dont_filter=True)
-            else:
-                # Otherwise, it's going to a product
-                yield scrapy.Request(sub_map_url, callback=self.parse_details, dont_filter=True)
-
-    def parse_submap(self, response):
-        soup = BeautifulSoup(response.text, 'lxml')
-        for sub_map in soup.select('loc'):
-            sub_map_url = sub_map.text
-            yield scrapy.Request(sub_map_url, callback=self.parse_details, dont_filter=True)
-
     def item_scraped(self):
         self.item_count += 1
         if self.item_count % 7131 == 0:
@@ -104,30 +86,29 @@ class BolSpider(scrapy.Spider):
             self.crawler.engine.unpause()
             self.logger.info(f"Back to work chief, full speed ahead ! ")
 
-    def parse_details(self, response):
-        soup = BeautifulSoup(response.text, 'lxml')
-        category_master = soup.select('p.breadcrumbs__link-label')
-        if category_master and (0 < len(category_master)):
-            category_level_1 = category_master[0].text.strip()
+
+    def parse(self, response):
+        if response.css('li.breadcrumbs__item:nth-child(2) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
+            category_level_1 = response.css('li.breadcrumbs__item:nth-child(2) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
             category_level_1 = ''
-        if category_master and (1 < len(category_master)):
-            category_level_2 = category_master[1].text.strip()
+        if response.css('li.breadcrumbs__item:nth-child(3) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
+            category_level_2 = response.css('li.breadcrumbs__item:nth-child(3) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
-            category_level_2 = ' '
-        if category_master and (2 < len(category_master)):
-            category_level_3 = category_master[2].text.strip()
+            category_level_2 = ''
+        if response.css('li.breadcrumbs__item:nth-child(4) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
+            category_level_3 = response.css('li.breadcrumbs__item:nth-child(4) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
-            category_level_3 = ' '
-        if category_master and (3 < len(category_master)):
-            category_level_4 = category_master[3].text.strip()
+            category_level_3 = ''
+        if response.css('li.breadcrumbs__item:nth-child(5) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
+            category_level_4 = response.css('li.breadcrumbs__item:nth-child(5) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
-            category_level_4 = ' '
-        if category_master and (4 < len(category_master)):
-            category_level_5 = category_master[4].text.strip()
+            category_level_4 = ''
+        if response.css('li.breadcrumbs__item:nth-child(6) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
+            category_level_5 = response.css('li.breadcrumbs__item:nth-child(6) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
-            category_level_5 = ' '
-
+            category_level_5 = ''
+  
         description = ''
         if response.css('.page-heading > span:nth-child(1)::text'):
             name = response.css('.page-heading > span:nth-child(1)::text').get().strip()
