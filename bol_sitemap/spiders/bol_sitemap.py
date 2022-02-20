@@ -86,6 +86,7 @@ class BolSpider(SitemapSpider):
             self.crawler.engine.unpause()
             self.logger.info(f"Back to work chief, full speed ahead ! ")
 
+
     def parse(self, response):
         if response.css('li.breadcrumbs__item:nth-child(2) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)'):
             category_level_1 = response.css('li.breadcrumbs__item:nth-child(2) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
@@ -107,7 +108,7 @@ class BolSpider(SitemapSpider):
             category_level_5 = response.css('li.breadcrumbs__item:nth-child(6) > span:nth-child(1) > a:nth-child(1) > p:nth-child(1)::text').get().strip()
         else:
             category_level_5 = ''
-
+  
         description = ''
         if response.css('.page-heading > span:nth-child(1)::text'):
             name = response.css('.page-heading > span:nth-child(1)::text').get().strip()
