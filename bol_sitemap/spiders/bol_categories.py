@@ -26,7 +26,11 @@ class BolSpider(scrapy.Spider):
     # }
 
     custom_settings = {
-        'CONCURRENT_REQUESTS': 4,
+        
+        'CONCURRENT_REQUESTS': 8,
+        'CONCURRENT_REQUEST_PER_DOMAIN': 8,
+        'AUTOTHROTTLE_ENABLED': False,
+        'DOWNLOAD_TIMEOUT': 600,
         'DOWNLOAD_DELAY': 0.3,
         'ROBOTSTXT_OBEY': True,
         'COOKIES_ENABLED': False,
